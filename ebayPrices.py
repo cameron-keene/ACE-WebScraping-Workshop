@@ -1,6 +1,4 @@
-# 1. make sure you have pip installed
-
-# 2. install packages
+# 1. install packages
 # pip install requests-html
 from requests_html import HTMLSession
 # pip install beautifulsoup4
@@ -10,7 +8,7 @@ import pandas as pd
 # pip install matplotlib
 import matplotlib.pyplot as plt
 
-# 3. item that we want to search for
+# 2. item that we want to search for
 term = 'rtx+3090'
 # beginning url
 url = f'https://www.ebay.com/sch/i.html?_nkw={term}&_sop=13&LH_Sold=1&LH_Complete=1&rt=nc&LH_ItemCondition=1000&_ipg=240'
@@ -18,17 +16,15 @@ url = f'https://www.ebay.com/sch/i.html?_nkw={term}&_sop=13&LH_Sold=1&LH_Complet
 # global variable to put all the data into
 soldPrices = []
 
-# 4. get the raw html data from the web page
+# 3. get the raw html data from the web page
 def get_data(url):
     s = HTMLSession()
     r = s.get(url)
     r.html.render(sleep=2)
     data = BeautifulSoup(r.text, 'html.parser')
-    # print("data: ", data)
-
     return data
 
-# 5. parse the raw html data that we are searching for
+# 4. parse the raw html data that we are searching for
 def parse_data(data):
     # get each individual listing "widget"
     results = data.find_all('div',{'class':'s-item__detail s-item__detail--primary'})
@@ -47,7 +43,7 @@ def parse_data(data):
                 soldPrices.append(0)
 
 
-# 6. get multiple pages, we don't want to just get one page of results. 
+# 5. get multiple pages, we don't want to just get one page of results. 
 def next_page(data):
     # get the pagination strip at bottom of page
     pages = data.find('div',{'class':'s-pagination'})
@@ -65,7 +61,7 @@ def next_page(data):
 
 
 
-# 7. loop through all the pages of sold items and get all the prices
+# 6. loop through all the pages of sold items and get all the prices
 while True:
     # get the data for the webpage
     webpage_data = get_data(url)
@@ -82,7 +78,7 @@ while True:
     parse_data(webpage_data)
 
 
-# 8. Main functionallity
+# 7. Main functionallity
 # convert the array to a pandas df
 df = pd.DataFrame(soldPrices, columns=['prices'])
 # insert new column with index numbers
