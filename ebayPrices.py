@@ -2,7 +2,6 @@
 
 # 2. install packages
 # pip install requests-html
-from operator import index
 from requests_html import HTMLSession
 # pip install beautifulsoup4
 from bs4 import BeautifulSoup
@@ -14,10 +13,7 @@ import matplotlib.pyplot as plt
 # 3. item that we want to search for
 term = 'rtx+3090'
 # beginning url
-# url = f'https://www.ebay.com/sch/i.html?_from=R40&_nkw={term}&_sacat=0&LH_ItemCondition=3000&rt=nc&LH_Sold=1&LH_Complete=1&_ipg=240'
-# url = f'https://www.ebay.com/sch/i.html?_from=R40&_nkw={term}&_sacat=0&LH_Sold=1&LH_Complete=1&rt=nc&LH_ItemCondition=3000&_ipg=240'
-# url = f'https://www.ebay.com/sch/i.html?_from=R40&_nkw=3090&_sacat=0&LH_TitleDesc=0&LH_Complete=1&LH_Sold=1'
-url = f'https://www.ebay.com/sch/i.html?_nkw=rtx+3090&_sop=13&LH_Sold=1&LH_Complete=1&rt=nc&LH_ItemCondition=1000&_ipg=240'
+url = f'https://www.ebay.com/sch/i.html?_nkw={term}&_sop=13&LH_Sold=1&LH_Complete=1&rt=nc&LH_ItemCondition=1000&_ipg=240'
 
 # global variable to put all the data into
 soldPrices = []
@@ -43,22 +39,30 @@ def parse_data(data):
         # issue with returning none for items, we need to check that item exits
         if price:
             # if item exists we can parse it for the text value ($Price)
-            price = float(price.text.replace('$','').replace(',','').strip())
-            soldPrices.append(price)
+            try:
+                price = float(price.text.replace('$','').replace(',','').strip())
+                soldPrices.append(price)
+            except:
+                print("no price found, append 0")
+                soldPrices.append(0)
+
 
 # 6. get multiple pages, we don't want to just get one page of results. 
 def next_page(data):
     # get the pagination strip at bottom of page
     pages = data.find('div',{'class':'s-pagination'})
-    # print("pages: ",pages)
-    if not pages:
-        print("no more urls")
-        return "no more urls"
+    # print("pages: ",pages)       
     if pages:
         # extract the URL from the webpage. 
-        url = pages.find('a',{'class':'pagination__next icon-link'})['href']
-        print("URL: ", url)
-        return url
+        url = pages.find('a',{'class':'pagination__next icon-link'})
+        if url:
+            url = url['href']
+            print("URL: ", url)
+            return url
+        else:
+            print("no more urls")
+            return "no more urls"
+
 
 
 # 7. loop through all the pages of sold items and get all the prices
@@ -70,22 +74,23 @@ while True:
     # check if old url == next url
     if (url == next_url):
         break
-    elif (url == "no more urls"):
+    elif (next_url == "no more urls"):
         break
     else:
         url = next_url
     # if does not match then parse
     parse_data(webpage_data)
-    # print("new url: ", new_url)
+
 
 # 8. Main functionallity
-
 # convert the array to a pandas df
 df = pd.DataFrame(soldPrices, columns=['prices'])
 # insert new column with index numbers
 index_column = list(range(0,len(soldPrices)))
 # add to the existing df
 df.insert(loc=0, column='idx', value=index_column)
+# export the data to csv, incase you get blocked
+df.to_csv('ebay_data.csv', index = True)
 # plot the df
 df.plot(x='idx',y='prices')
 # show the df
