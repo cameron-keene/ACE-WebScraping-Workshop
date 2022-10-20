@@ -14,7 +14,10 @@ import matplotlib.pyplot as plt
 # 3. item that we want to search for
 term = 'rtx+3090'
 # beginning url
-url = f'https://www.ebay.com/sch/i.html?_from=R40&_nkw={term}&_sacat=0&LH_Sold=1&LH_Complete=1&rt=nc&LH_ItemCondition=3000&_ipg=240'
+# url = f'https://www.ebay.com/sch/i.html?_from=R40&_nkw={term}&_sacat=0&LH_ItemCondition=3000&rt=nc&LH_Sold=1&LH_Complete=1&_ipg=240'
+# url = f'https://www.ebay.com/sch/i.html?_from=R40&_nkw={term}&_sacat=0&LH_Sold=1&LH_Complete=1&rt=nc&LH_ItemCondition=3000&_ipg=240'
+# url = f'https://www.ebay.com/sch/i.html?_from=R40&_nkw=3090&_sacat=0&LH_TitleDesc=0&LH_Complete=1&LH_Sold=1'
+url = f'https://www.ebay.com/sch/i.html?_nkw=rtx+3090&_sop=13&LH_Sold=1&LH_Complete=1&rt=nc&LH_ItemCondition=1000&_ipg=240'
 
 # global variable to put all the data into
 soldPrices = []
@@ -23,7 +26,7 @@ soldPrices = []
 def get_data(url):
     s = HTMLSession()
     r = s.get(url)
-    r.html.render(sleep=1)
+    r.html.render(sleep=2)
     data = BeautifulSoup(r.text, 'html.parser')
     # print("data: ", data)
 
@@ -47,12 +50,15 @@ def parse_data(data):
 def next_page(data):
     # get the pagination strip at bottom of page
     pages = data.find('div',{'class':'s-pagination'})
+    # print("pages: ",pages)
+    if not pages:
+        print("no more urls")
+        return "no more urls"
     if pages:
         # extract the URL from the webpage. 
         url = pages.find('a',{'class':'pagination__next icon-link'})['href']
+        print("URL: ", url)
         return url
-    else:
-        print("pages-none", pages)
 
 
 # 7. loop through all the pages of sold items and get all the prices
@@ -63,6 +69,8 @@ while True:
     next_url = next_page(webpage_data)
     # check if old url == next url
     if (url == next_url):
+        break
+    elif (url == "no more urls"):
         break
     else:
         url = next_url
