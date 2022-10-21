@@ -85,6 +85,7 @@ df = pd.DataFrame(soldPrices, columns=['prices'])
 index_column = list(range(0,len(soldPrices)))
 # add to the existing df
 df.insert(loc=0, column='idx', value=index_column)
+print(df.dtypes)
 # export the data to csv, incase you get blocked
 df.to_csv('ebay_data.csv', index = True)
 # plot the df
